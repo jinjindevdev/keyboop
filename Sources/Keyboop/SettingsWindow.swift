@@ -3500,6 +3500,9 @@ final class DetailVC: NSViewController {
         histClear.bezelStyle = .rounded; histClear.controlSize = .regular
         let histShow = NSButton(title: L10n.t("voice.showHistory"), target: self, action: #selector(showVoiceHistory))
         histShow.bezelStyle = .rounded; histShow.controlSize = .regular
+        let dictionaryEditor = SnippetsEditor(frame: .zero, store: VoiceDictionary.shared,
+                                               phLeft: "voice.dictPhHeard", phRight: "voice.dictPhWritten")
+        dictionaryEditor.translatesAutoresizingMaskIntoConstraints = false
 
         // РАСКЛАДКА ПО СМЫСЛУ.
         // Было: 12 разнородных строк в ОДНОЙ карточке. Микрофон стоял в пятой строке, а его же
@@ -3595,18 +3598,13 @@ final class DetailVC: NSViewController {
                 makeOutputBox(),
             ]),
         ]
-        // ⚠️ РЕДАКТОР СЛОВАРЯ УБРАН ИЗ НАСТРОЕК (решение автора 13.08.2026: «словарь в голосовом
-        // наборе не будем отображать, он будет под нашим контролем полностью»).
-        //
-        // Сам словарь никуда не делся и работает как работал — `VoiceDictionary` правит распознанное
-        // и кормит подсказку модели. Изменилось одно: список ведём мы, а не человек. Повод прямой —
-        // на «Claude Code» заготовок понадобилось тридцать шесть, и такой список в окне настроек
-        // выглядит свалкой, а не настройкой. Это ровно та линия, что и с простым режимом: минимум
-        // ручек, остальное решаем за человека.
-        //
-        // ⚠️ ЦЕНА НАЗВАНА ЧЕСТНО: пока редактора нет, человек не может добавить СВОЁ слово, и
-        // единственный путь для него — написать нам. Если таких просьб пойдёт много, редактор
-        // вернётся, но уже не свалкой: свои записи отдельно от заготовок.
+        views.append(contentsOf: [
+            group(6),
+            sectionTitle(L10n.t("voice.grpDict")),
+            hint(L10n.t("voice.dictSub")),
+            card([dictionaryEditor]),
+            hint(L10n.t("voice.dictHint"))
+        ])
 
         views.append(contentsOf: [
             group(6),

@@ -84,6 +84,10 @@ final class VoiceDictionary {
         ("кейбуп", "Keyboop"),
         ("к-буп", "Keyboop"),
         ("вайп", "вайб"),
+        ("тойлау", "Toilau"),
+        ("велтори", "Welltory"),
+        ("weltery", "Welltory"),
+        ("шинлар", "Shinlar"),
     ] + claudeHeardAs.map { ($0, "Claude Code") }
       + chatGPTHeardAs.map { ($0, "ChatGPT") }
       + usdtHeardAs.map { ($0, "USDT") }
@@ -230,7 +234,7 @@ final class VoiceDictionary {
     /// (Claude Code 12.08, ChatGPT 13.08), значит будет и третий.
     private func mergeSeed2() {
         // Девятый заход: ZCode (30.08). Номер обязан расти при каждом пополнении заготовок.
-        let mark = "voiceDictSeed9"   // + Z-код → ZCode (30.08)
+        let mark = "voiceDictSeed10"
         guard !d.bool(forKey: mark) else { return }
         d.set(true, forKey: mark)
         guard !orderedPairs.isEmpty else { return }   // пустой список человек очистил намеренно
