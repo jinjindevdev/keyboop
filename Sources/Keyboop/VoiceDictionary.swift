@@ -296,7 +296,10 @@ final class VoiceDictionary {
         }
         for (index, (heard, written)) in orderedPairs.enumerated() where Self.fold(heard) == Self.fold(written) {
             guard let soundalike = Self.russianSoundalike(written), !soundalike.isEmpty else { continue }
-            indexed.append((Array(soundalike), written, index))
+            let variants = [soundalike, soundalike.replacingOccurrences(of: "лл", with: "л")]
+            for variant in Set(variants) {
+                indexed.append((Array(variant), written, index))
+            }
         }
         needles = indexed.sorted {
             if $0.pattern.count != $1.pattern.count { return $0.pattern.count > $1.pattern.count }
