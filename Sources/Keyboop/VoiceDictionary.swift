@@ -253,14 +253,15 @@ final class VoiceDictionary {
     func setAll(_ pairs: [(String, String)]) {
         var out: [(String, String)] = []
         for (h, w) in pairs {
-            let heard = h.trimmingCharacters(in: .whitespaces)
             let written = w.trimmingCharacters(in: .whitespaces)
-            if heard.isEmpty { continue }
-            let c = Self.fold(heard)
+            guard !written.isEmpty else { continue }
+            let heard = h.trimmingCharacters(in: .whitespaces)
+            let pattern = heard.isEmpty ? written : heard
+            let c = Self.fold(pattern)
             if let idx = out.firstIndex(where: { Self.fold($0.0) == c }) {
                 out[idx].1 = written        // тот же образец → обновляем замену, позицию сохраняем
             } else {
-                out.append((heard, written))
+                out.append((pattern, written))
             }
         }
         orderedPairs = out
@@ -276,13 +277,26 @@ final class VoiceDictionary {
         s.lowercased().replacingOccurrences(of: "ё", with: "е")
     }
 
+    private static func russianSoundalike(_ term: String) -> String? {
+        var value = fold(term)
+        guard value.allSatisfy({ $0.isASCII && ($0.isLetter || $0 == " " || $0 == "-") }) else { return nil }
+        for (latin, russian) in [("sch", "щ"), ("sh", "ш"), ("ch", "ч"), ("zh", "ж"), ("kh", "х"), ("th", "т"), ("oi", "ой"), ("au", "ау"), ("a", "а"), ("b", "б"), ("c", "к"), ("d", "д"), ("e", "е"), ("f", "ф"), ("g", "г"), ("h", "х"), ("i", "и"), ("j", "дж"), ("k", "к"), ("l", "л"), ("m", "м"), ("n", "н"), ("o", "о"), ("p", "п"), ("q", "к"), ("r", "р"), ("s", "с"), ("t", "т"), ("u", "у"), ("v", "в"), ("w", "в"), ("x", "кс"), ("y", "и"), ("z", "з")] {
+            value = value.replacingOccurrences(of: latin, with: russian)
+        }
+        return value
+    }
+
     private func rebuildIndex() {
-        let indexed = orderedPairs.enumerated().compactMap { index, pair ->
+        var indexed = orderedPairs.enumerated().compactMap { index, pair ->
             (pattern: [Character], replacement: String, order: Int)? in
             let (h, w) = pair
             let f = Self.fold(h.trimmingCharacters(in: .whitespaces))
             guard !f.isEmpty, !w.isEmpty else { return nil }
             return (Array(f), w, index)
+        }
+        for (index, (heard, written)) in orderedPairs.enumerated() where Self.fold(heard) == Self.fold(written) {
+            guard let soundalike = Self.russianSoundalike(written), !soundalike.isEmpty else { continue }
+            indexed.append((Array(soundalike), written, index))
         }
         needles = indexed.sorted {
             if $0.pattern.count != $1.pattern.count { return $0.pattern.count > $1.pattern.count }

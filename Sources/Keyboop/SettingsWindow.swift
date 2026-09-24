@@ -3501,7 +3501,8 @@ final class DetailVC: NSViewController {
         let histShow = NSButton(title: L10n.t("voice.showHistory"), target: self, action: #selector(showVoiceHistory))
         histShow.bezelStyle = .rounded; histShow.controlSize = .regular
         let dictionaryEditor = SnippetsEditor(frame: .zero, store: VoiceDictionary.shared,
-                                               phLeft: "voice.dictPhHeard", phRight: "voice.dictPhWritten")
+                                               phLeft: "voice.dictPhHeard", phRight: "voice.dictPhWritten",
+                                               monoLeft: false, singleColumn: true)
         dictionaryEditor.translatesAutoresizingMaskIntoConstraints = false
 
         // РАСКЛАДКА ПО СМЫСЛУ.

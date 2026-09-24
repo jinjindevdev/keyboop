@@ -22,6 +22,7 @@ final class SnippetsEditor: NSView, NSTextFieldDelegate {
     /// Подписи-приглашения в пустой строке: у списков разный смысл колонок.
     private let phLeft: String
     private let phRight: String
+    private let singleColumn: Bool
     /// Моноширинный ли шрифт в ЛЕВОЙ колонке.
     ///
     /// ⚠️ У автозамены и сниппетов — да: слева стоит последовательность КЛАВИШ («!ee», «итд»), и
@@ -61,14 +62,19 @@ final class SnippetsEditor: NSView, NSTextFieldDelegate {
 
     init(frame frameRect: NSRect, store: PairListStore = SnippetStore.shared,
          phLeft: String = "snip.phTrigger", phRight: String = "snip.phExpansion",
-         allowsReorder: Bool = false, monoLeft: Bool = true) {
+         allowsReorder: Bool = false, monoLeft: Bool = true, singleColumn: Bool = false) {
         self.store = store
         self.phLeft = phLeft
         self.phRight = phRight
         self.allowsReorder = allowsReorder
         self.monoLeft = monoLeft
+        self.singleColumn = singleColumn
         super.init(frame: frameRect)
-        rows = store.pairs()
+        rows = singleColumn ? store.pairs().map { ("", $0.1) } : store.pairs()
+        if singleColumn {
+            store.setAll(rows)
+            rows = store.pairs()
+        }
         normalizeTrailing()
         build()
         rebuild()
@@ -181,7 +187,7 @@ final class SnippetsEditor: NSView, NSTextFieldDelegate {
         grip.onMoved  = { [weak self] p in self?.dragMoved(to: p) }
         grip.onEnded  = { [weak self] in self?.dragEnded() }
 
-        let h = NSStackView(views: allowsReorder ? [grip, trig, exp, trash] : [trig, exp, trash])
+        let h = NSStackView(views: singleColumn ? [exp, trash] : (allowsReorder ? [grip, trig, exp, trash] : [trig, exp, trash]))
         h.orientation = .horizontal
         h.alignment = .centerY
         h.spacing = 8
@@ -195,11 +201,13 @@ final class SnippetsEditor: NSView, NSTextFieldDelegate {
             grip.widthAnchor.constraint(equalToConstant: 16).isActive = true
             grip.heightAnchor.constraint(equalToConstant: rowHeight).isActive = true
         }
-        trig.widthAnchor.constraint(equalToConstant: trigW).isActive = true
+        if !singleColumn { trig.widthAnchor.constraint(equalToConstant: trigW).isActive = true }
         trash.widthAnchor.constraint(equalToConstant: trashW).isActive = true
         h.heightAnchor.constraint(equalToConstant: rowHeight).isActive = true
-        trig.setContentHuggingPriority(.required, for: .horizontal)
-        trig.setContentCompressionResistancePriority(.required, for: .horizontal)
+        if !singleColumn {
+            trig.setContentHuggingPriority(.required, for: .horizontal)
+            trig.setContentCompressionResistancePriority(.required, for: .horizontal)
+        }
         exp.setContentHuggingPriority(.defaultLow, for: .horizontal)
         return h
     }
